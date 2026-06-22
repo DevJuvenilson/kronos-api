@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: kronos
+
+  datasource:
+    # Docker injects these through environment variables. The URL fallback is
+    # convenient for local development, while credentials remain mandatory.
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/kronos_db}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate # Flyway owns schema changes; Hibernate only validates.
+    show-sql: ${SPRING_JPA_SHOW_SQL:false}
+    properties:
+      hibernate:
+        format_sql: ${SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL:false}
+
+  flyway:
+    baseline-on-migrate: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:false}
+
+api:
+  security:
+    token:
+      secret: ${API_SECURITY_TOKEN_SECRET}
+      issuer: ${API_SECURITY_TOKEN_ISSUER:kronos-api}
+      expiration-hours: ${API_SECURITY_TOKEN_EXPIRATION_HOURS:2}

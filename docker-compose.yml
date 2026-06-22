@@ -1,0 +1,62 @@
+services:
+  kronos-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: kronos-api:local
+    container_name: kronos-api
+    restart: unless-stopped
+    init: true
+    ports:
+      - "${KRONOS_API_PORT:-8080}:8080"
+    environment:
+      # Spring Boot maps these variables to spring.datasource.*.
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://kronos-db:5432/${POSTGRES_DB:-kronos_db}"
+      SPRING_DATASOURCE_USERNAME: "${POSTGRES_USER:?Set POSTGRES_USER in .env}"
+      SPRING_DATASOURCE_PASSWORD: "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}"
+      # Production deployments must not use the development JWT fallback.
+      API_SECURITY_TOKEN_SECRET: "${API_SECURITY_TOKEN_SECRET:?Set API_SECURITY_TOKEN_SECRET in .env}"
+      API_SECURITY_TOKEN_ISSUER: "${API_SECURITY_TOKEN_ISSUER:-kronos-api}"
+      API_SECURITY_TOKEN_EXPIRATION_HOURS: "${API_SECURITY_TOKEN_EXPIRATION_HOURS:-2}"
+    depends_on:
+      kronos-db:
+        condition: service_healthy
+        restart: true
+    networks:
+      - kronos-network
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  kronos-db:
+    image: postgres:17-alpine
+    container_name: kronos-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: "${POSTGRES_DB:-kronos_db}"
+      POSTGRES_USER: "${POSTGRES_USER:?Set POSTGRES_USER in .env}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}"
+    volumes:
+      - kronos-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    stop_grace_period: 30s
+    networks:
+      - kronos-network
+
+volumes:
+  kronos-postgres-data:
+    name: kronos-postgres-data
+
+networks:
+  kronos-network:
+    name: kronos-network
+    driver: bridge
