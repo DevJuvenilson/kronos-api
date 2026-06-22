@@ -240,6 +240,14 @@ The suite is organized by responsibility:
 
 The philosophy is behavior-first coverage: each happy path is paired with boundary cases such as unknown resources, invalid payloads, missing memberships, and insufficient roles. The centralized error contract separately maps database conflicts to `400` and missing entities to `404`, keeping failures predictable for API consumers.
 
+## 🚧 Project status
+
+> **Kronos is under active development and does not yet represent the final version of the application.**
+
+This repository contains the current backend foundation and working API for the Kronos MVP. Its architecture, security model, persistence strategy, documentation, and automated tests are already implemented, but features and API contracts may continue to evolve before a stable `1.0` release.
+
+Planned iterations may expand the product with notification workflows, calendar experiences, task attachments, external integrations, broader automated coverage, and dedicated web or mobile clients. Feedback, technical discussion, and contributions are welcome as the project matures.
+
 ---
 
 <div align="center">
